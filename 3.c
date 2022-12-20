@@ -10,14 +10,14 @@ sem_t sem;
 
 enum{// для выхода
 	OUT = 1,
-	CONTINUE = 0;
-}
+	CONTINUE = 0
+};
 
 void* write_thread(void* arg){
     while(1){
         if (sem_trywait(&sem) == 0){
             int* local_data = arg;
-        	if (local_data[10] == Out){// для выхода
+        	if (local_data[10] == OUT){// для выхода
             	sem_post(&sem);
         		return NULL;
 			}
