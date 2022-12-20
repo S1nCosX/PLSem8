@@ -8,10 +8,19 @@
 
 sem_t sem;
 
+enum{// для выхода
+	OUT = 1,
+	CONTINUE = 0;
+}
+
 void* write_thread(void* arg){
     while(1){
         if (sem_trywait(&sem) == 0){
             int* local_data = arg;
+        	if (local_data[10] == Out){// для выхода
+            	sem_post(&sem);
+        		return NULL;
+			}
             printf("--------I got message for you--------\n");
             for (int i = 0; i < 10; i++)
                 printf("%d : %d\n", i, local_data[i]);
@@ -27,8 +36,14 @@ void* read_thread(void* arg){
         if (sem_trywait(&sem) == 0){
             int* local_data = arg;
             int i = 0, a = 0;
-            if(scanf("%d%d", &i, &a))
+            if(scanf("%d%d", &i, &a)){
+            	if (i == -1){// для выхода
+            		local_data[10] = OUT;            		
+		            sem_post(&sem);
+		            return NULL;
+				}
                 local_data[i] = a;
+			}
             sem_post(&sem);
         }
     }
@@ -36,11 +51,13 @@ void* read_thread(void* arg){
 }
 
 int main() {
-    int data[10];
+    int data[11];
     for (int i = 0; i < 10; i++)
         data[i] = i + 1;
+        
+    data[10] = CONTINUE; // для выхода
     
-    pthread_t t1, t2;
+	pthread_t t1, t2;
     sem_init(&sem, 0, 1);
 
     pthread_create(&t1, NULL, read_thread, &data);
